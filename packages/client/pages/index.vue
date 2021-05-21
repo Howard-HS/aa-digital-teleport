@@ -1,5 +1,6 @@
 <template lang="pug">
 #main
+  SearchBar
   WeatherCard
 </template>
 
