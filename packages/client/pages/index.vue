@@ -5,9 +5,26 @@
 </template>
 
 <script>
-import { defineComponent } from '@nuxtjs/composition-api'
+import { defineComponent, onMounted, useContext } from '@nuxtjs/composition-api'
 
-export default defineComponent({})
+export default defineComponent({
+  setup() {
+    const { store } = useContext()
+    onMounted(() => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            store.dispatch('getWeatherDataByGeolocation', {
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
+            })
+          },
+          (err) => console.log(err)
+        )
+      }
+    })
+  },
+})
 </script>
 
 <style lang="sass">

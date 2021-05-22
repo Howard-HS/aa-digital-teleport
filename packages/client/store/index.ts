@@ -188,4 +188,39 @@ export const actions: ActionTree<RootState, {}> = {
     context.commit('addCity', cityDetails)
     context.commit('setCurrentCity', cityDetails)
   },
+
+  async getWeatherDataByGeolocation(
+    context,
+    coordinates: { longitude: number; latitude: number }
+  ) {
+    const { data } = await axios.get<OpenWeatherAPI.Response>(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
+    )
+
+    const cityDetails: City = {
+      name: data.name,
+      humidity: data.main.humidity,
+      pressure: data.main.pressure,
+      timezone: data.timezone,
+      sunset: dayjs.unix(data.sys.sunset).format('hh:mm A'),
+      sunrise: dayjs.unix(data.sys.sunrise).format('hh:mm A'),
+      temperatures: {
+        now: data.main.temp,
+        feel: data.main.feels_like,
+        max: data.main.temp_max,
+        min: data.main.temp_min,
+      },
+      wind: {
+        speed: data.wind.speed,
+      },
+      weather: {
+        status: data.weather[0].main,
+        description: data.weather[0].description,
+        icon: data.weather[0].icon,
+      },
+    }
+
+    context.commit('addCity', cityDetails)
+    context.commit('setCurrentCity', cityDetails)
+  },
 }
