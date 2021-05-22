@@ -78,8 +78,9 @@ export default defineComponent({
 @import ~assets/_variables
 
 #searchbar
-  width: 60%
+  width: 420px
   position: relative
+  margin: 20px auto
 
   input
     width: 100%
