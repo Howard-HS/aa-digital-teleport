@@ -59,7 +59,7 @@ export default defineComponent({
   background: $grey-darken-3
   transition: all 0.2s ease-in-out
   padding: 20px
-  box-shadow: 1px 1px 5px 2px rgba(255,255,255,0.5)
+  box-shadow: 1px 1px 5px 2px rgba(255,255,255,0.75)
 
   .header
     display: flex
