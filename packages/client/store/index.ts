@@ -223,4 +223,13 @@ export const actions: ActionTree<RootState, {}> = {
     context.commit('addCity', cityDetails)
     context.commit('setCurrentCity', cityDetails)
   },
+
+  async getWeatherForecast(
+    context,
+    coordinates: { longitude: number; latitude: number }
+  ) {
+    const { data } = await axios.get<OpenWeatherAPI.Response>(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
+    )
+  },
 }

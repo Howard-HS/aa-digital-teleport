@@ -37,15 +37,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, useContext } from '@nuxtjs/composition-api'
+import { defineComponent } from '@nuxtjs/composition-api'
 
-export default defineComponent({
-  setup() {
-    const { store } = useContext()
-
-    onMounted(() => store.dispatch('getWeatherData', 'Kuala Lumpur'))
-  },
-})
+export default defineComponent({})
 </script>
 
 <style lang="sass" scoped>
