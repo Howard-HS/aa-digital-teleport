@@ -30,12 +30,14 @@ export const mutations: MutationTree<Store.RootState> = {
     state,
     payload: {
       index: number
+      rainProbability: number
       forecastToday: Store.ForecastToday[]
       forecastFiveDay: Store.ForecastFiveDay[]
     }
   ) {
     state.cities[payload.index].forecastToday = payload.forecastToday
     state.cities[payload.index].forecastFiveDay = payload.forecastFiveDay
+    state.cities[payload.index].rainProbability = payload.rainProbability
   },
 
   setCurrentCityIndex(state, index: number) {
@@ -109,6 +111,11 @@ export const actions: ActionTree<Store.RootState, {}> = {
         dayjs.unix(item.dt).format('YYYY-MM-DD') === today.format('YYYY-MM-DD')
     )
     const forecastFiveDay = [] as Store.ForecastFiveDay[]
+    const rainProbability = Math.round(
+      (forecastToday.reduce((acc, cur) => (acc += cur.pop), 0) /
+        forecastToday.length) *
+        100
+    )
 
     for (let i = 1; i < 5; i++) {
       const date = today.add(i, 'day')
@@ -145,6 +152,8 @@ export const actions: ActionTree<Store.RootState, {}> = {
 
     context.commit('updateForecastToday', {
       index,
+      rainProbability,
+      forecastFiveDay,
       forecastToday: forecastToday.reduce((acc, cur) => {
         acc.push({
           timestamp: cur.dt_txt,
@@ -155,7 +164,6 @@ export const actions: ActionTree<Store.RootState, {}> = {
         })
         return acc
       }, [] as Store.ForecastToday[]),
-      forecastFiveDay,
     })
   },
 }
