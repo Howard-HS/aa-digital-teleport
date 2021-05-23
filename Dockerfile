@@ -2,6 +2,8 @@ FROM node:14 as build
 WORKDIR /app
 COPY . ./
 
+ENV NUXT_ENV_OPEN_WEATHER_API_KEY 0cf07af7e1b72af894e9a7985d5de740
+
 RUN yarn
 RUN yarn build
 
