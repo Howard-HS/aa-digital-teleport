@@ -33,19 +33,13 @@ export default defineComponent({
     })
 
     async function onGeolocationSuccess(position: GeolocationPosition) {
-      await Promise.all([
-        store.dispatch('getWeatherData', {
-          mode: 'geolocation',
-          coordinates: {
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-          },
-        }),
-        store.dispatch('getWeatherForecast', {
+      await store.dispatch('getWeatherData', {
+        mode: 'geolocation',
+        coordinates: {
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
-        }),
-      ])
+        },
+      })
     }
 
     function onGeolocationError(error: GeolocationPositionError) {

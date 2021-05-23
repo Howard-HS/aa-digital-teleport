@@ -4,10 +4,21 @@ import { MutationTree, ActionTree, GetterTree } from 'vuex'
 import axios, { AxiosResponse } from 'axios'
 import dayjs from 'dayjs'
 
+const OPENWEATHERAPI_BASE_URL = 'https://api.openweathermap.org/data/2.5'
+const axiosInstance = axios.create({
+  method: 'GET',
+  baseURL: OPENWEATHERAPI_BASE_URL,
+  params: {
+    appid: process.env.NUXT_ENV_OPEN_WEATHER_API_KEY!,
+    units: 'metric',
+  },
+})
+
 export const state = () => {
   return {
     cities: [],
     currentLocationCityId: 0,
+    currentCity: {} as Store.City,
     isLoading: true,
   } as Store.RootState
 }
@@ -27,22 +38,8 @@ export const mutations: MutationTree<Store.RootState> = {
     state.cities.push(city)
   },
 
-  updateForecastToday(
-    state,
-    payload: {
-      index: number
-      rainProbability: number
-      forecastToday: Store.ForecastToday[]
-      forecastFiveDay: Store.ForecastFiveDay[]
-    }
-  ) {
-    state.cities[payload.index].forecastToday = payload.forecastToday
-    state.cities[payload.index].forecastFiveDay = payload.forecastFiveDay
-    state.cities[payload.index].rainProbability = payload.rainProbability
-  },
-
-  setCurrentLocationCityId(state, index: number) {
-    state.currentLocationCityId = index
+  setCurrentCity(state, city: Store.City) {
+    state.currentCity = city
   },
 
   setLoadingState(state, isLoading: boolean) {
@@ -60,75 +57,88 @@ export const actions: ActionTree<Store.RootState, {}> = {
     }
   ) {
     context.commit('setLoadingState', true)
-    let response = {} as AxiosResponse<OpenWeatherAPI.WeatherResponse>
+
+    // Step 1: Get weather data
+    let weatherResponse = {} as AxiosResponse<OpenWeatherAPI.WeatherResponse>
+
     if (payload.mode === 'city') {
-      response = await axios.get<OpenWeatherAPI.WeatherResponse>(
-        `https://api.openweathermap.org/data/2.5/weather?q=${payload.city}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
-      )
+      weatherResponse = await axiosInstance('/weather', {
+        params: {
+          city: payload.city,
+        },
+      })
     } else {
-      response = await axios.get<OpenWeatherAPI.WeatherResponse>(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${payload.coordinates.latitude}&lon=${payload.coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
-      )
+      weatherResponse = await axiosInstance('/weather', {
+        params: {
+          lat: payload.coordinates.latitude,
+          lon: payload.coordinates.longitude,
+        },
+      })
     }
 
-    const { data } = response
     const cityDetails: Store.City = {
-      id: data.id,
-      name: data.name,
-      humidity: Math.round(data.main.humidity),
-      pressure: Math.round(data.main.pressure),
-      timezone: data.timezone,
-      sunset: dayjs.unix(data.sys.sunset).format('hh:mm A'),
-      sunrise: dayjs.unix(data.sys.sunrise).format('hh:mm A'),
-      visibility: Math.round(data.visibility / 1000),
+      id: weatherResponse.data.id,
+      name: weatherResponse.data.name,
+      humidity: Math.round(weatherResponse.data.main.humidity),
+      pressure: Math.round(weatherResponse.data.main.pressure),
+      timezone: weatherResponse.data.timezone,
+      sunset: dayjs.unix(weatherResponse.data.sys.sunset).format('hh:mm A'),
+      sunrise: dayjs.unix(weatherResponse.data.sys.sunrise).format('hh:mm A'),
+      visibility: Math.round(weatherResponse.data.visibility / 1000),
       rainProbability: 0,
+      // temp_min and temp_max is optional, fallback to temp is parameter is not available
+      // more info: https://openweathermap.org/current#min
       temperatures: {
-        now: Math.round(data.main.temp),
-        feel: Math.round(data.main.feels_like),
-        max: Math.round(data.main.temp_max),
-        min: Math.round(data.main.temp_min),
+        now: Math.round(weatherResponse.data.main.temp),
+        feel: Math.round(weatherResponse.data.main.feels_like),
+        max: Math.round(
+          weatherResponse.data.main.temp_max || weatherResponse.data.main.temp
+        ),
+        min: Math.round(
+          weatherResponse.data.main.temp_min || weatherResponse.data.main.temp
+        ),
       },
       wind: {
-        speed: Math.round(data.wind.speed * 3.6),
+        speed: Math.round(weatherResponse.data.wind.speed * 3.6),
       },
+      // One or more weather condition is possible
+      // Here we assume the first item in array is primary
+      // More info: https://openweathermap.org/weather-conditions
       weather: {
-        status: data.weather[0].main,
-        description: data.weather[0].description,
-        icon: data.weather[0].icon,
+        status: weatherResponse.data.weather[0].main,
+        description: weatherResponse.data.weather[0].description,
+        icon: weatherResponse.data.weather[0].icon,
       },
       forecastToday: [],
       forecastFiveDay: [],
     }
 
-    context.commit('addCity', cityDetails)
-    context.commit('setCurrentLocationCityId', cityDetails.id)
-    context.commit('setLoadingState', false)
-  },
+    // Step 2: Get forecast data
 
-  async getWeatherForecast(
-    context,
-    coordinates: { longitude: number; latitude: number }
-  ) {
-    context.commit('setLoadingState', true)
-    const { data } = await axios.get<OpenWeatherAPI.ForecastResponse>(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
-    )
+    // Use cityId from previous response
+    const forecastResponse: AxiosResponse<OpenWeatherAPI.ForecastResponse> =
+      await axiosInstance('/forecast', {
+        params: {
+          id: cityDetails.id,
+        },
+      })
 
     const today = dayjs()
-    const forecastToday = data.list.filter(
+
+    // Convert unix timestamp into standard YYYY-MM-DD date format
+    // And compare both dates to filter out 3h forcasted data for TODAY
+    const forecastToday = forecastResponse.data.list.filter(
       (item) =>
         dayjs.unix(item.dt).format('YYYY-MM-DD') === today.format('YYYY-MM-DD')
     )
-    const forecastFiveDay = [] as Store.ForecastFiveDay[]
-    const rainProbability = Math.round(
-      (forecastToday.reduce((acc, cur) => (acc += cur.pop), 0) /
-        forecastToday.length) *
-        100
-    )
 
-    for (let i = 1; i < 5; i++) {
+    const forecastFiveDay = [] as Store.ForecastFiveDay[]
+
+    // Use a for-loop to incrementally add 1 day from TODAY
+    // Using the same method above to filter out 3h forcasted data that belongs in the same day
+    for (let i = 1; i < 6; i++) {
       const date = today.add(i, 'day')
-      const forecastSegments = data.list.filter(
+      const forecastSegments = forecastResponse.data.list.filter(
         (item) =>
           dayjs.unix(item.dt).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
       )
@@ -136,11 +146,30 @@ export const actions: ActionTree<Store.RootState, {}> = {
       forecastFiveDay.push({
         day: date.format('YYYY-MM-DD'),
         week: date.format('dddd'),
+        // The temperatures are calculated based on the average of the 3h segments returned from each loop
         temperatures: {
-          now: Math.round(forecastSegments[0].main.temp),
-          feel: Math.round(forecastSegments[0].main.feels_like),
-          max: Math.round(forecastSegments[0].main.temp_max),
-          min: Math.round(forecastSegments[0].main.temp_min),
+          now: Math.round(
+            forecastSegments.reduce((acc, cur) => (acc += cur.main.temp), 0) /
+              forecastSegments.length
+          ),
+          feel: Math.round(
+            forecastSegments.reduce(
+              (acc, cur) => (acc += cur.main.feels_like),
+              0
+            ) / forecastSegments.length
+          ),
+          max: Math.round(
+            forecastSegments.reduce(
+              (acc, cur) => (acc += cur.main.temp_max),
+              0
+            ) / forecastSegments.length
+          ),
+          min: Math.round(
+            forecastSegments.reduce(
+              (acc, cur) => (acc += cur.main.temp_min),
+              0
+            ) / forecastSegments.length
+          ),
         },
         weather: forecastSegments.reduce((acc, cur) => {
           acc.push({
@@ -155,25 +184,27 @@ export const actions: ActionTree<Store.RootState, {}> = {
       })
     }
 
-    const index = context.state.cities.findIndex(
-      (city) => city.id === data.city.id
+    cityDetails.forecastToday = forecastToday.reduce((acc, cur) => {
+      acc.push({
+        timestamp: dayjs.unix(cur.dt).format('YYYY-MM-DD hh:mm:ss'),
+        hour: dayjs.unix(cur.dt).format('hA'),
+        description: cur.weather[0].description,
+        icon: cur.weather[0].icon,
+        status: cur.weather[0].main,
+      })
+      return acc
+    }, [] as Store.ForecastToday[])
+
+    // Calculate the rain probability based on the 3h segments returned TODAY
+    cityDetails.rainProbability = Math.round(
+      (forecastToday.reduce((acc, cur) => (acc += cur.pop), 0) /
+        forecastToday.length) *
+        100
     )
 
-    context.commit('updateForecastToday', {
-      index,
-      rainProbability,
-      forecastFiveDay,
-      forecastToday: forecastToday.reduce((acc, cur) => {
-        acc.push({
-          timestamp: cur.dt_txt,
-          hour: dayjs.unix(cur.dt).format('hA'),
-          description: cur.weather[0].description,
-          icon: cur.weather[0].icon,
-          status: cur.weather[0].main,
-        })
-        return acc
-      }, [] as Store.ForecastToday[]),
-    })
+    cityDetails.forecastFiveDay = forecastFiveDay
+
+    context.commit('setCurrentCity', cityDetails)
     context.commit('setLoadingState', false)
   },
 }
