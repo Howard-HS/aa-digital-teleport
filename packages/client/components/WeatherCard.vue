@@ -1,10 +1,15 @@
 <template lang="pug">
 #WeatherCard(v-if='Object.keys(city).length > 0 && !$store.state.isLoading')
-  v-card(width='400px')
+  v-card
     v-row
       v-col
         v-card-title.text-capitalize {{ city.name }}
         v-card-subtitle.text-capitalize {{ today }}
+      v-col.text-right(cols=2, v-if='$route.path !== "/"')
+        v-btn(icon, v-if='$route.path === "/cities"')
+          v-icon(large, color='success') mdi-plus
+        v-btn(icon, v-if='$route.path === "/my-cities"')
+          v-icon(large, color='error') mdi-delete-outline
     v-row
       v-col
         .d-flex.justify-center.align-center
