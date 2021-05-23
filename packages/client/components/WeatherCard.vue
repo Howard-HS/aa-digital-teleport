@@ -1,5 +1,5 @@
 <template lang="pug">
-#WeatherCard(v-if='city')
+#WeatherCard(v-if='Object.keys(city).length > 0 && !$store.state.isLoading')
   v-card(width='400px')
     v-row
       v-col
@@ -83,35 +83,26 @@
 <script lang="ts">
 // Temporary fix to silent eslint warning
 /* eslint-disable no-undef */
-import {
-  defineComponent,
-  reactive,
-  toRefs,
-  useContext,
-  computed,
-  ref,
-} from '@nuxtjs/composition-api'
+import { defineComponent, reactive, toRefs, ref } from '@nuxtjs/composition-api'
 import dayjs from 'dayjs'
 
 export default defineComponent({
   props: {
-    cityId: {
+    city: {
       required: true,
-      type: Number,
-      default: 0,
+      type: Object,
+      default: () => {
+        return {}
+      },
     },
   },
-  setup(props) {
-    const { store } = useContext()
+  setup() {
     const state = reactive({
       today: dayjs().format('dddd, DD MMM YYYY hh:mm A'),
     })
-    const city = computed<Store.City>(() =>
-      store.getters.getCurrentCity(props.cityId)
-    )
     const showDetails = ref(false)
 
-    return { ...toRefs(state), city, showDetails }
+    return { ...toRefs(state), showDetails }
   },
 })
 </script>

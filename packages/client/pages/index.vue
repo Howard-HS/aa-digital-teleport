@@ -1,6 +1,6 @@
 <template lang="pug">
 #home
-  WeatherCard(:cityId='$store.state.currentLocationCityId')
+  WeatherCard(:city='$store.state.currentCity')
   v-dialog(max-width=600, v-model='errorDialog')
     v-card
       v-card-title.error--text Error
