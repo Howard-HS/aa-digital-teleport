@@ -1,21 +1,26 @@
 # AA Digital Teleport
 ### A simple weather forecast web app
-
+### Demo: https://webapp-ds73xg6ocq-as.a.run.app
 ## Tech Stacks
 - Nuxt
 - Vuetify
 
-
-
-## Quick start guide
+## Deployment
+- Google Cloud Run (*Cloud build enabled on master branch*)
+## Quick start guide (Local Development)
 
 ```bash
-# install dependencies and start the development server
+# install dependencies
 $ yarn install
+
+# Appends the environment variable NUXT_ENV_OPEN_WEATHER_API_KEY
+# Replace with your own API key
+# https://home.openweathermap.org/api_keys
+$ echo "NUXT_ENV_OPEN_WEATHER_API_KEY=" >> .env
+
+# Start the development server
 $ yarn dev
 
-# generate static project
-$ yarn generate
 ```
 
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+
