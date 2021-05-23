@@ -19,7 +19,7 @@ export const state = () => {
     cities: [],
     currentLocationCityId: 0,
     currentCity: {} as Store.City,
-    isLoading: true,
+    isLoading: false,
   } as Store.RootState
 }
 
@@ -29,13 +29,44 @@ export const getters: GetterTree<Store.RootState, {}> = {
   },
 
   getCurrentCity(state) {
-    return (id: number) => state.cities.find((city) => city.id === id)
+    return state.currentCity
   },
 }
 
 export const mutations: MutationTree<Store.RootState> = {
-  addCity(state, city: Store.City) {
-    state.cities.push(city)
+  addCity(state, newCity: Store.City) {
+    const existingCity = state.cities.find((city) => city.id === newCity.id)
+
+    if (!existingCity) {
+      const storageKey = `${window.location.host}|userCities`
+
+      state.cities.push(newCity)
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(
+          state.cities.reduce((acc, cur) => {
+            acc.push(cur.name)
+            return acc
+          }, [] as string[])
+        )
+      )
+    }
+  },
+
+  removeCity(state, cityId: number) {
+    const itemIndex = state.cities.findIndex((city) => city.id === cityId)
+    state.cities.splice(itemIndex, 1)
+    const storageKey = `${window.location.host}|userCities`
+
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify(
+        state.cities.reduce((acc, cur) => {
+          acc.push(cur.name)
+          return acc
+        }, [] as string[])
+      )
+    )
   },
 
   setCurrentCity(state, city: Store.City) {

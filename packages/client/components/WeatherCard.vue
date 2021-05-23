@@ -1,14 +1,27 @@
 <template lang="pug">
 #WeatherCard(v-if='Object.keys(city).length > 0 && !$store.state.isLoading')
+  v-dialog(max-width=600, v-model='showDialog')
+    template(v-if='action === "add"')
+      v-card
+        v-card-title Information
+        v-card-text City Added
+        v-card-actions.justify-end
+          v-btn(text, @click='showDialog = false') Close
+    template(v-else)
+      v-card
+        v-card-title Information
+        v-card-text City Removed
+        v-card-actions.justify-end
+          v-btn(text, @click='showDialog = false') Close
   v-card
     v-row
       v-col
         v-card-title.text-capitalize {{ city.name }}
         v-card-subtitle.text-capitalize {{ today }}
       v-col.text-right(cols=2, v-if='$route.path !== "/"')
-        v-btn(icon, v-if='$route.path === "/cities"')
+        v-btn(icon, v-if='$route.path === "/cities"', @click='addCity')
           v-icon(large, color='success') mdi-plus
-        v-btn(icon, v-if='$route.path === "/my-cities"')
+        v-btn(icon, v-if='$route.path === "/my-cities"', @click='removeCity')
           v-icon(large, color='error') mdi-delete-outline
     v-row
       v-col
@@ -88,7 +101,12 @@
 <script lang="ts">
 // Temporary fix to silent eslint warning
 /* eslint-disable no-undef */
-import { defineComponent, reactive, toRefs, ref } from '@nuxtjs/composition-api'
+import {
+  defineComponent,
+  reactive,
+  toRefs,
+  useContext,
+} from '@nuxtjs/composition-api'
 import dayjs from 'dayjs'
 
 export default defineComponent({
@@ -101,13 +119,28 @@ export default defineComponent({
       },
     },
   },
-  setup() {
+  setup(props) {
+    const { store } = useContext()
     const state = reactive({
       today: dayjs().format('dddd, DD MMM YYYY hh:mm A'),
+      showDetails: false,
+      showDialog: false,
+      action: '',
     })
-    const showDetails = ref(false)
 
-    return { ...toRefs(state), showDetails }
+    function addCity() {
+      state.action = 'add'
+      store.commit('addCity', store.getters.getCurrentCity)
+      state.showDialog = true
+    }
+
+    function removeCity() {
+      state.action = 'remove'
+      store.commit('removeCity', props.city.id)
+      state.showDialog = true
+    }
+
+    return { ...toRefs(state), addCity, removeCity }
   },
 })
 </script>

@@ -1,5 +1,5 @@
 <template lang="pug">
-#home
+#cities
   SearchBar
   WeatherCard(:city='$store.state.currentCity')
 </template>
