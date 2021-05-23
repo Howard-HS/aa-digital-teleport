@@ -5,6 +5,8 @@
 </template>
 
 <script lang="ts">
+// Temporary fix to silent eslint warning
+/* eslint-disable no-undef */
 import { defineComponent, onMounted, useContext } from '@nuxtjs/composition-api'
 
 export default defineComponent({

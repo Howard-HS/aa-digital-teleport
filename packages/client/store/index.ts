@@ -1,139 +1,38 @@
+// Temporary fix to silent eslint warning
+/* eslint-disable no-undef */
 import { MutationTree, ActionTree, GetterTree } from 'vuex'
 import axios from 'axios'
 import dayjs from 'dayjs'
 
-interface City {
-  name: string
-  humidity: number
-  pressure: number
-  timezone: number
-  sunset: string
-  sunrise: string
-  temperatures: {
-    now: number
-    min: number
-    max: number
-    feel: number
-  }
-  wind: {
-    speed: number
-  }
-  weather: {
-    status: string
-    description: string
-    icon: string
-  }
-}
-
-interface RootState {
-  cities: City[]
-  currentCity: City
-}
-
-declare namespace OpenWeatherAPI {
-  interface Response {
-    coord: {
-      lon: number
-      lat: number
-    }
-    weather: {
-      id: number
-      main: string
-      description: string
-      icon: string
-    }[]
-    base: string
-    main: {
-      temp: number
-      // eslint-disable-next-line
-      feels_like: number
-      pressure: number
-      humidity: number
-      // eslint-disable-next-line
-      temp_min: number
-      // eslint-disable-next-line
-      temp_max: number
-      // eslint-disable-next-line
-      sea_level: number
-      // eslint-disable-next-line
-      grnd_level: number
-    }
-    wind: {
-      speed: number
-      deg: number
-      gust: number
-    }
-    clouds: {
-      all: number
-    }
-    rain: {
-      '1h': number
-      '3h': number
-    }
-    snow: {
-      '1h': number
-      '3h': number
-    }
-    dt: number
-    sys: {
-      type: number
-      id: number
-      message: string
-      country: string
-      sunrise: number
-      sunset: number
-    }
-    timezone: number
-    id: number
-    name: string
-    cod: number
-    visibility: number
-  }
-}
-
 export const state = () => {
   return {
     cities: [],
-    currentCity: {
-      name: '',
-      humidity: 0,
-      pressure: 0,
-      timezone: 0,
-      sunset: '',
-      sunrise: '',
-      temperatures: {
-        now: 0,
-        feel: 0,
-        max: 0,
-        min: 0,
-      },
-      wind: {
-        speed: 0,
-      },
-      weather: {
-        status: '',
-        description: '',
-        icon: '',
-      },
-    } as City,
-  } as RootState
+    selectedCityId: 0,
+  } as Store.RootState
 }
 
-export const getters: GetterTree<RootState, {}> = {
+export const getters: GetterTree<Store.RootState, {}> = {
   getCities(state) {
     return state.cities
   },
+
+  getCurrentCity(state) {
+    return state.cities[0]
+  },
 }
 
-export const mutations: MutationTree<RootState> = {
-  addCity(state, city: City) {
+export const mutations: MutationTree<Store.RootState> = {
+  addCity(state, city: Store.City) {
     state.cities.push({
+      id: city.id,
       name: city.name,
       humidity: city.humidity,
       pressure: city.pressure,
       timezone: city.timezone,
       sunset: city.sunset,
       sunrise: city.sunrise,
+      visibility: city.visibility,
+      rainProbability: city.rainProbability,
       temperatures: {
         now: city.temperatures.now,
         min: city.temperatures.min,
@@ -148,27 +47,35 @@ export const mutations: MutationTree<RootState> = {
         description: city.weather.description,
         icon: city.weather.icon,
       },
+      forecastToday: [],
     })
   },
 
-  setCurrentCity(state, city: City) {
-    state.currentCity = city
+  updateForecastToday(state, payload: { index: number; forecastToday: any }) {
+    state.cities[payload.index].forecastToday = payload.forecastToday
+  },
+
+  setCurrentCityIndex(state, index: number) {
+    state.selectedCityId = index
   },
 }
 
-export const actions: ActionTree<RootState, {}> = {
+export const actions: ActionTree<Store.RootState, {}> = {
   async getWeatherData(context, city) {
-    const { data } = await axios.get<OpenWeatherAPI.Response>(
+    const { data } = await axios.get<OpenWeatherAPI.WeatherResponse>(
       `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
     )
 
-    const cityDetails: City = {
+    const cityDetails: Store.City = {
+      id: data.id,
       name: data.name,
       humidity: data.main.humidity,
       pressure: data.main.pressure,
       timezone: data.timezone,
       sunset: dayjs.unix(data.sys.sunset).format('hh:mm A'),
       sunrise: dayjs.unix(data.sys.sunrise).format('hh:mm A'),
+      visibility: data.visibility,
+      rainProbability: 0,
       temperatures: {
         now: data.main.temp,
         feel: data.main.feels_like,
@@ -183,27 +90,30 @@ export const actions: ActionTree<RootState, {}> = {
         description: data.weather[0].description,
         icon: data.weather[0].icon,
       },
+      forecastToday: [],
     }
 
     context.commit('addCity', cityDetails)
-    context.commit('setCurrentCity', cityDetails)
   },
 
   async getWeatherDataByGeolocation(
     context,
     coordinates: { longitude: number; latitude: number }
   ) {
-    const { data } = await axios.get<OpenWeatherAPI.Response>(
+    const { data } = await axios.get<OpenWeatherAPI.WeatherResponse>(
       `https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
     )
 
-    const cityDetails: City = {
+    const cityDetails: Store.City = {
+      id: data.id,
       name: data.name,
       humidity: data.main.humidity,
       pressure: data.main.pressure,
       timezone: data.timezone,
       sunset: dayjs.unix(data.sys.sunset).format('hh:mm A'),
       sunrise: dayjs.unix(data.sys.sunrise).format('hh:mm A'),
+      visibility: data.visibility,
+      rainProbability: 0,
       temperatures: {
         now: data.main.temp,
         feel: data.main.feels_like,
@@ -218,18 +128,42 @@ export const actions: ActionTree<RootState, {}> = {
         description: data.weather[0].description,
         icon: data.weather[0].icon,
       },
+      forecastToday: [],
     }
 
     context.commit('addCity', cityDetails)
-    context.commit('setCurrentCity', cityDetails)
   },
 
   async getWeatherForecast(
     context,
     coordinates: { longitude: number; latitude: number }
   ) {
-    const { data } = await axios.get<OpenWeatherAPI.Response>(
+    const { data } = await axios.get<OpenWeatherAPI.ForecastResponse>(
       `https://api.openweathermap.org/data/2.5/forecast?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
     )
+
+    // Push today data into weather card
+    const todayDate = dayjs().format('YYYY-MM-DD')
+    const forecastToday = data.list.filter(
+      (item) => dayjs.unix(item.dt).format('YYYY-MM-DD') === todayDate
+    )
+
+    const index = context.state.cities.findIndex(
+      (city) => city.id === data.city.id
+    )
+
+    context.commit('updateForecastToday', {
+      index,
+      forecastToday: forecastToday.reduce((acc, cur) => {
+        acc.push({
+          timestamp: cur.dt_txt,
+          hour: dayjs.unix(cur.dt).format('hA'),
+          description: cur.weather[0].description,
+          icon: cur.weather[0].icon,
+          status: cur.weather[0].main,
+        })
+        return acc
+      }, [] as Store.ForecastToday[]),
+    })
   },
 }
