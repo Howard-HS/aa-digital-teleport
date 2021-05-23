@@ -1,17 +1,18 @@
-# client
+# AA Digital Teleport
+### A simple weather forecast web app
 
-## Build Setup
+## Tech Stacks
+- Nuxt
+- Vuetify
+
+
+
+## Quick start guide
 
 ```bash
-# install dependencies
+# install dependencies and start the development server
 $ yarn install
-
-# serve with hot reload at localhost:3000
 $ yarn dev
-
-# build for production and launch server
-$ yarn build
-$ yarn start
 
 # generate static project
 $ yarn generate
