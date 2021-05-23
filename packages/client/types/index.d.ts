@@ -7,6 +7,11 @@ declare namespace Store {
     hour: string
   }
 
+  interface ForecastFiveDay {
+    day: string
+    week: string
+    weather: ForecastToday[]
+  }
   interface City {
     id: number
     name: string
@@ -32,6 +37,7 @@ declare namespace Store {
       icon: string
     }
     forecastToday: ForecastToday[]
+    forecastFiveDay: ForecastFiveDay[]
   }
 
   interface RootState {

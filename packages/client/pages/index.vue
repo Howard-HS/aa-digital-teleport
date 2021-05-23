@@ -1,7 +1,7 @@
 <template lang="pug">
 #home
   SearchBar
-  WeatherCard
+  WeatherCard(:cityId='1760605')
 </template>
 
 <script lang="ts">
@@ -23,9 +23,12 @@ export default defineComponent({
 
     async function onGeolocationSuccess(position: GeolocationPosition) {
       await Promise.all([
-        store.dispatch('getWeatherDataByGeolocation', {
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
+        store.dispatch('getWeatherData', {
+          mode: 'geolocation',
+          coordinates: {
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+          },
         }),
         store.dispatch('getWeatherForecast', {
           longitude: position.coords.longitude,
@@ -38,7 +41,10 @@ export default defineComponent({
       if (error.PERMISSION_DENIED) {
         window.alert('Unable to obtain geolocation')
       }
-      await store.dispatch('getWeatherData', 'Kuala Lumpur')
+      await store.dispatch('getWeatherData', {
+        mode: 'city',
+        city: 'Kuala Lumpur',
+      })
     }
   },
 })
