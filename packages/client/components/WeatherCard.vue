@@ -5,7 +5,7 @@
       v-col
         v-card-title.text-capitalize {{ city.name }}
         v-card-subtitle.text-capitalize {{ today }}
-    v-row(v-if='city.temperatures')
+    v-row
       v-col
         .d-flex.justify-center.align-center
           p.text-h3.text-center.ma-0 {{ Math.round(city.temperatures.now) }} &#8451;
