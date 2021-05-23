@@ -39,7 +39,9 @@ export default defineComponent({
 
     onMounted(async () => {
       // Check if users have any saved cities
-      const savedCities = JSON.parse(localStorage.getItem(storageKey))
+      const savedCities: string[] = JSON.parse(
+        localStorage.getItem(storageKey) as string
+      )
 
       if (!savedCities || savedCities.length <= 0) {
         await initializeCities(defaultSavedCities)
