@@ -17,73 +17,79 @@
         .d-flex.justify-center
           p.text-subtitle-1.mr-2 H: {{ Math.round(city.temperatures.min) }} &#8451;
           p.text-subtitle-1.ml-2 L: {{ Math.round(city.temperatures.max) }} &#8451;
-    v-divider
-    v-row
-      v-col
-        v-card-text
-          p.text-body-1.text-uppercase Today
-          .intervals.d-flex.justify-start
-            .d-flex.flex-column.align-center.mx-4(
-              v-for='today in city.forecastToday'
-            )
-              .item.text-center
-                img(
-                  :src='`http://openweathermap.org/img/wn/${today.icon}@2x.png`'
-                )
-                p.text-caption.font-weight-bold.text-uppercase.my-0 {{ today.hour }}
-                p.text-caption.font-weight-light.text-capitalize {{ today.description }}
-    v-divider
-    v-card-text
-      v-row.align-center
-        template(v-for='forecastWeek in city.forecastFiveDay')
-          v-col(cols=4)
-            p.text-body-1.text-uppercase.mb-0 {{ forecastWeek.week }}
-          v-col(cols=4)
-            span.text-caption ({{ forecastWeek.temperatures.min }} &#8451; / {{ forecastWeek.temperatures.max }} &#8451; )
-          v-col(cols=4)
-            .d-flex.align-center.justify-end
-              span.text-caption.mx-1 {{ forecastWeek.weather[0].status }}
-              v-img(
-                contain,
-                max-width='50',
-                :src='`http://openweathermap.org/img/wn/${forecastWeek.weather[0].icon}@2x.png`'
-              ) 
-    v-divider
-    v-card-text
+    template(v-if='showDetails')
+      v-divider
       v-row
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 humidity
-          p.text-subtitle-1.mb-0 {{ city.humidity }}%
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 pressure
-          p.text-subtitle-1.mb-0 {{ city.pressure }} hPA
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Wind Speed
-          p.text-subtitle-1.mb-0 {{ city.wind.speed }} km/h
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Feels Like
-          p.text-subtitle-1.mb-0 {{ city.temperatures.feel }} &#8451;
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Visibility
-          p.text-subtitle-1.mb-0 {{ city.visibility }} km
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Chance of Rain
-          p.text-subtitle-1.mb-0 {{ city.rainProbability }}%
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Sunset
-          p.text-subtitle-1.mb-0 {{ city.sunset }}
-        v-col(cols=12, sm=6)
-          p.text-body-1.text-uppercase.font-weight-bold.mb-0 Sunrise
-          p.text-subtitle-1.mb-0 {{ city.sunrise }}
+        v-col
+          v-card-text
+            p.text-body-1.text-uppercase Today
+            .intervals.d-flex.justify-start
+              .d-flex.flex-column.align-center.mx-4(
+                v-for='today in city.forecastToday'
+              )
+                .item.text-center
+                  img(
+                    :src='`http://openweathermap.org/img/wn/${today.icon}@2x.png`'
+                  )
+                  p.text-caption.font-weight-bold.text-uppercase.my-0 {{ today.hour }}
+                  p.text-caption.font-weight-light.text-capitalize {{ today.description }}
+      v-divider
+      v-card-text
+        v-row.align-center
+          template(v-for='forecastWeek in city.forecastFiveDay')
+            v-col(cols=4)
+              p.text-body-1.text-uppercase.mb-0 {{ forecastWeek.week }}
+            v-col(cols=4)
+              span.text-caption ({{ forecastWeek.temperatures.min }} &#8451; / {{ forecastWeek.temperatures.max }} &#8451; )
+            v-col(cols=4)
+              .d-flex.align-center.justify-end
+                span.text-caption.mx-1 {{ forecastWeek.weather[0].status }}
+                v-img(
+                  contain,
+                  max-width='50',
+                  :src='`http://openweathermap.org/img/wn/${forecastWeek.weather[0].icon}@2x.png`'
+                ) 
+      v-divider
+      v-card-text
+        v-row
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 humidity
+            p.text-subtitle-1.mb-0 {{ city.humidity }}%
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 pressure
+            p.text-subtitle-1.mb-0 {{ city.pressure }} hPA
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Wind Speed
+            p.text-subtitle-1.mb-0 {{ city.wind.speed }} km/h
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Feels Like
+            p.text-subtitle-1.mb-0 {{ city.temperatures.feel }} &#8451;
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Visibility
+            p.text-subtitle-1.mb-0 {{ city.visibility }} km
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Chance of Rain
+            p.text-subtitle-1.mb-0 {{ city.rainProbability }}%
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Sunset
+            p.text-subtitle-1.mb-0 {{ city.sunset }}
+          v-col(cols=12, sm=6)
+            p.text-body-1.text-uppercase.font-weight-bold.mb-0 Sunrise
+            p.text-subtitle-1.mb-0 {{ city.sunrise }}
+    v-card-actions.justify-end
+      v-btn(block, @click='showDetails = !showDetails') {{ showDetails ? "Hide" : "Show More" }}
 </template>
 
 <script lang="ts">
+// Temporary fix to silent eslint warning
+/* eslint-disable no-undef */
 import {
   defineComponent,
   reactive,
   toRefs,
   useContext,
   computed,
+  ref,
 } from '@nuxtjs/composition-api'
 import dayjs from 'dayjs'
 
@@ -103,8 +109,9 @@ export default defineComponent({
     const city = computed<Store.City>(() =>
       store.getters.getCurrentCity(props.cityId)
     )
+    const showDetails = ref(false)
 
-    return { ...toRefs(state), city }
+    return { ...toRefs(state), city, showDetails }
   },
 })
 </script>
