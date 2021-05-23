@@ -1,17 +1,28 @@
 <template lang="pug">
 #home
-  SearchBar
-  WeatherCard(:cityId='1760605')
+  WeatherCard(:cityId='$store.state.currentLocationCityId')
+  v-dialog(max-width=600, v-model='errorDialog')
+    v-card
+      v-card-title.error--text Error
+      v-card-text Unable to obtain device location
+      v-card-actions.justify-end
+        v-btn(text, @click='errorDialog = false') Close
 </template>
 
 <script lang="ts">
 // Temporary fix to silent eslint warning
 /* eslint-disable no-undef */
-import { defineComponent, onMounted, useContext } from '@nuxtjs/composition-api'
+import {
+  defineComponent,
+  onMounted,
+  useContext,
+  ref,
+} from '@nuxtjs/composition-api'
 
 export default defineComponent({
   setup() {
     const { store } = useContext()
+    const errorDialog = ref(false)
     onMounted(() => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -37,15 +48,13 @@ export default defineComponent({
       ])
     }
 
-    async function onGeolocationError(error: GeolocationPositionError) {
+    function onGeolocationError(error: GeolocationPositionError) {
       if (error.PERMISSION_DENIED) {
-        window.alert('Unable to obtain geolocation')
+        errorDialog.value = true
       }
-      await store.dispatch('getWeatherData', {
-        mode: 'city',
-        city: 'Kuala Lumpur',
-      })
     }
+
+    return { errorDialog }
   },
 })
 </script>

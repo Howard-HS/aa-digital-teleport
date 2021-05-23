@@ -48,7 +48,8 @@ declare namespace Store {
 
   interface RootState {
     cities: City[]
-    selectedCityId: number
+    currentLocationCityId: number
+    isLoading: boolean
   }
 }
 

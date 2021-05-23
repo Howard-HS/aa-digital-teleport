@@ -7,7 +7,8 @@ import dayjs from 'dayjs'
 export const state = () => {
   return {
     cities: [],
-    selectedCityId: 0,
+    currentLocationCityId: 0,
+    isLoading: true,
   } as Store.RootState
 }
 
@@ -40,8 +41,12 @@ export const mutations: MutationTree<Store.RootState> = {
     state.cities[payload.index].rainProbability = payload.rainProbability
   },
 
-  setCurrentCityIndex(state, index: number) {
-    state.selectedCityId = index
+  setCurrentLocationCityId(state, index: number) {
+    state.currentLocationCityId = index
+  },
+
+  setLoadingState(state, isLoading: boolean) {
+    state.isLoading = isLoading
   },
 }
 
@@ -54,6 +59,7 @@ export const actions: ActionTree<Store.RootState, {}> = {
       city: string
     }
   ) {
+    context.commit('setLoadingState', true)
     let response = {} as AxiosResponse<OpenWeatherAPI.WeatherResponse>
     if (payload.mode === 'city') {
       response = await axios.get<OpenWeatherAPI.WeatherResponse>(
@@ -95,12 +101,15 @@ export const actions: ActionTree<Store.RootState, {}> = {
     }
 
     context.commit('addCity', cityDetails)
+    context.commit('setCurrentLocationCityId', cityDetails.id)
+    context.commit('setLoadingState', false)
   },
 
   async getWeatherForecast(
     context,
     coordinates: { longitude: number; latitude: number }
   ) {
+    context.commit('setLoadingState', true)
     const { data } = await axios.get<OpenWeatherAPI.ForecastResponse>(
       `https://api.openweathermap.org/data/2.5/forecast?lat=${coordinates.latitude}&lon=${coordinates.longitude}&appid=${process.env.NUXT_ENV_OPEN_WEATHER_API_KEY}&units=metric`
     )
@@ -165,5 +174,6 @@ export const actions: ActionTree<Store.RootState, {}> = {
         return acc
       }, [] as Store.ForecastToday[]),
     })
+    context.commit('setLoadingState', false)
   },
 }
