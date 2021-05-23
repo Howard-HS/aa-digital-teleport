@@ -67,21 +67,21 @@ export const actions: ActionTree<Store.RootState, {}> = {
     const cityDetails: Store.City = {
       id: data.id,
       name: data.name,
-      humidity: data.main.humidity,
-      pressure: data.main.pressure,
+      humidity: Math.round(data.main.humidity),
+      pressure: Math.round(data.main.pressure),
       timezone: data.timezone,
       sunset: dayjs.unix(data.sys.sunset).format('hh:mm A'),
       sunrise: dayjs.unix(data.sys.sunrise).format('hh:mm A'),
-      visibility: data.visibility,
+      visibility: Math.round(data.visibility / 1000),
       rainProbability: 0,
       temperatures: {
-        now: data.main.temp,
-        feel: data.main.feels_like,
-        max: data.main.temp_max,
-        min: data.main.temp_min,
+        now: Math.round(data.main.temp),
+        feel: Math.round(data.main.feels_like),
+        max: Math.round(data.main.temp_max),
+        min: Math.round(data.main.temp_min),
       },
       wind: {
-        speed: data.wind.speed,
+        speed: Math.round(data.wind.speed * 3.6),
       },
       weather: {
         status: data.weather[0].main,
@@ -120,6 +120,12 @@ export const actions: ActionTree<Store.RootState, {}> = {
       forecastFiveDay.push({
         day: date.format('YYYY-MM-DD'),
         week: date.format('dddd'),
+        temperatures: {
+          now: Math.round(forecastSegments[0].main.temp),
+          feel: Math.round(forecastSegments[0].main.feels_like),
+          max: Math.round(forecastSegments[0].main.temp_max),
+          min: Math.round(forecastSegments[0].main.temp_min),
+        },
         weather: forecastSegments.reduce((acc, cur) => {
           acc.push({
             timestamp: dayjs.unix(cur.dt).format('YYYY-MM-DD hh:mm:ss'),

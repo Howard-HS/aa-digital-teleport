@@ -10,6 +10,12 @@ declare namespace Store {
   interface ForecastFiveDay {
     day: string
     week: string
+    temperatures: {
+      now: number
+      min: number
+      max: number
+      feel: number
+    }
     weather: ForecastToday[]
   }
   interface City {
