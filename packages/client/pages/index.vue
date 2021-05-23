@@ -25,6 +25,7 @@ export default defineComponent({
     const errorDialog = ref(false)
     onMounted(() => {
       if (navigator.geolocation) {
+        store.commit('setLoadingState', true)
         navigator.geolocation.getCurrentPosition(
           onGeolocationSuccess,
           onGeolocationError
@@ -33,6 +34,7 @@ export default defineComponent({
     })
 
     async function onGeolocationSuccess(position: GeolocationPosition) {
+      store.commit('setLoadingState', false)
       await store.dispatch('getWeatherData', {
         mode: 'geolocation',
         coordinates: {
@@ -43,6 +45,7 @@ export default defineComponent({
     }
 
     async function onGeolocationError(error: GeolocationPositionError) {
+      store.commit('setLoadingState', false)
       if (error.PERMISSION_DENIED) {
         errorDialog.value = true
       }

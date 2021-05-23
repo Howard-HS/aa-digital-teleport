@@ -5,13 +5,14 @@
     filled,
     :items='cities',
     v-model='selectedCity',
-    @change='updateWeatherData'
+    @change='getWeatherData'
   )
 </template>
 
-<script>
+<script lang="ts">
 import {
   defineComponent,
+  onMounted,
   reactive,
   ref,
   toRefs,
@@ -59,11 +60,16 @@ export default defineComponent({
       'Sepang',
     ])
 
-    async function updateWeatherData() {
-      await store.dispatch('getWeatherData', state.selectedCity)
+    onMounted(() => getWeatherData('Kuala Lumpur'))
+
+    async function getWeatherData(city: string) {
+      await store.dispatch('getWeatherData', {
+        mode: 'city',
+        city: city || state.selectedCity,
+      })
     }
 
-    return { cities, ...toRefs(state), updateWeatherData }
+    return { cities, ...toRefs(state), getWeatherData }
   },
 })
 </script>

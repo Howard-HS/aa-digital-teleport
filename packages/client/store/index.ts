@@ -45,6 +45,10 @@ export const mutations: MutationTree<Store.RootState> = {
   setLoadingState(state, isLoading: boolean) {
     state.isLoading = isLoading
   },
+
+  resetCurrentCity(state) {
+    state.currentCity = {} as Store.City
+  },
 }
 
 export const actions: ActionTree<Store.RootState, {}> = {
@@ -57,6 +61,7 @@ export const actions: ActionTree<Store.RootState, {}> = {
     }
   ) {
     context.commit('setLoadingState', true)
+    context.commit('resetCurrentCity')
 
     // Step 1: Get weather data
     let weatherResponse = {} as AxiosResponse<OpenWeatherAPI.WeatherResponse>
