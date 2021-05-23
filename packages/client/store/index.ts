@@ -64,7 +64,7 @@ export const actions: ActionTree<Store.RootState, {}> = {
     if (payload.mode === 'city') {
       weatherResponse = await axiosInstance('/weather', {
         params: {
-          city: payload.city,
+          q: payload.city,
         },
       })
     } else {

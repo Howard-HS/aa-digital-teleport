@@ -4,7 +4,7 @@
   v-dialog(max-width=600, v-model='errorDialog')
     v-card
       v-card-title.error--text Error
-      v-card-text Unable to obtain device location
+      v-card-text Unable to obtain device location, using Kuala Lumpur as default location.
       v-card-actions.justify-end
         v-btn(text, @click='errorDialog = false') Close
 </template>
@@ -42,10 +42,15 @@ export default defineComponent({
       })
     }
 
-    function onGeolocationError(error: GeolocationPositionError) {
+    async function onGeolocationError(error: GeolocationPositionError) {
       if (error.PERMISSION_DENIED) {
         errorDialog.value = true
       }
+
+      await store.dispatch('getWeatherData', {
+        mode: 'city',
+        city: 'Kuala Lumpur',
+      })
     }
 
     return { errorDialog }
